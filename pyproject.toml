@@ -1,0 +1,32 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "pyto-pkg"
+version = "1.0"
+dependencies = []
+requires-python = ">=3.8"
+authors = [
+  {name = "Emma Labbé", email = "emma@labbe.me"},
+]
+maintainers = [
+  {name = "Emma Labbé", email = "emma@labbe.me"},
+]
+description = "Python command line utility that installs wheels into Swift packages."
+readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
+classifiers = [
+  "Programming Language :: Python"
+]
+
+[project.urls]
+Repository = "https://git.gatit.es/pyto/pyto-pkg"
+
+[project.scripts]
+pyto-pkg = "pyto_pkg:main"
+pyto-cross-python = "pyto_pkg:cross_python_main"
+
+[project.package-data]
+"pyto_pkg" = ["data/**/*"]
