@@ -72,7 +72,8 @@ class OutputPackage:
 
 
 def setup_environment(platform: str, architecture: str, output_path: str) -> dict:
-    environ = {}
+    environ = os.environ
+
     environ["PYTHON_PLATFORM"] = platform.replace("-", "_")
     environ["PYTHON_SCRIPT_PATH"] = os.environ.get("PYTHON_SCRIPT_PATH", "")
     environ["_PYTHON_SYSCONFIGDATA_NAME"] = sysconfig._get_sysconfigdata_name()
