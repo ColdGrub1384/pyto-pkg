@@ -1,16 +1,18 @@
 from .environment import call_pip, SUPPORTED_TARGETS, DEFAULT_INDEX, OutputPackage
 
 
-def install(output: str, packages: list[str] = [], requirement: str = None, no_scripts: bool = False, index_url: str = DEFAULT_INDEX, targets: list[str] = []):
+def install(output: str, packages: list[str] = [], requirement: str = None, no_scripts: bool = False, no_deps: bool = False, index_url: str = DEFAULT_INDEX, targets: list[str] = []):
     package = OutputPackage(output)
     for target in targets:
         for arch in SUPPORTED_TARGETS[target]:
-            args = ["install", "--prefer-binary", "--force-reinstall"] + packages
+            args = ["install", "--no-build-isolation", "--prefer-binary", "--force-reinstall"] + packages
             if requirement is not None:
                 with open(requirement, "r") as f:
                     for pkg in f.readlines():
                         if pkg != "":
                             args.append(pkg.strip().replace("\n", ""))
+            if no_deps:
+                args.append("--no-deps")
             args += ["--index-url", index_url]
             args += ["--extra-index-url", "https://pypi.org/simple"]
             call_pip(args, target, arch, output)
