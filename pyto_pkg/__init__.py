@@ -6,11 +6,10 @@ import sysconfig
 import sys
 import os
 
+os.environ["PYTHON_SCRIPT_PATH"] = os.path.join(sysconfig.get_path("scripts", f"{os.name}_prefix"), "pyto-cross-python")
+os.putenv(f"PYTHON_SCRIPT_PATH", os.environ["PYTHON_SCRIPT_PATH"])
 
 def main():
-    os.environ["PYTHON_SCRIPT_PATH"] = os.path.join(sysconfig.get_path("scripts", f"{os.name}_prefix"), "pyto-cross-python")
-    os.putenv(f"PYTHON_SCRIPT_PATH", os.environ["PYTHON_SCRIPT_PATH"])
-
     parser = argparse.ArgumentParser(
         description="""Python command line utility that installs wheels into Swift packages. 
 The Python version to work with is derived from the interpreter running this module and you can setup multiple Python versions in a single Swift Package.
