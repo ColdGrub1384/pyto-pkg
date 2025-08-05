@@ -48,15 +48,9 @@ def main():
     bin_path = os.environ["PYTHON_BIN_PATH"]
     include_path = os.environ["PYTHON_INCLUDE_PATH"]
 
-    path = [site_path]
-    for site_path in sys.path:
-        if "site-packages" not in site_path:
-            path.append(site_path)
-
     site.USER_SITE = site_path
     base.user_site = site_path
     base.site_packages = site_path
-    sys.path = path
     sys.prefix = proj_path
     sys.exec_prefix = proj_path
     sysconfig._PREFIX = sys.prefix
@@ -106,7 +100,7 @@ def main():
             print(_usage, file=sys.stderr)
             sys.exit(1)
 
-        exec(_code)
+        exec(_code, globals={})
     elif sys.argv[1] == "-m" or sys.argv[1].startswith("-m"):
         if sys.argv[1] != "-m":
             mod = sys.argv[1].replace("-m", "")
