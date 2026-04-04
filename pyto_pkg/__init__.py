@@ -17,6 +17,9 @@ Scripts are shared accross platforms (even when installed from wheels), but exte
 
 This does not provide a cross compilation environment and is only meant to be used to install wheels and pure Python packages.
 """)
+    parser.add_argument("--output", "-o", required=True, help="Path of the Swift Package directory.")
+    parser.add_argument("--name", "-n", required=False, help="Specify a name for the Swift Package target name different from the package name.")
+    
     subparsers = parser.add_subparsers(dest="command", required=True)
     install_parser = subparsers.add_parser("install", help="Install package(s).")
     install_parser.add_argument("packages", nargs="*", help="Package(s) to install.")
@@ -36,6 +39,8 @@ This does not provide a cross compilation environment and is only meant to be us
     args = parser.parse_args()
     if args.output is not None:
         args.output = os.path.abspath(args.output)
+    if args.name is None:
+        args.name = os.path.basename(args.output)
     match args.command:
         case "install":
             if not args.packages and not args.requirement:
