@@ -18,10 +18,10 @@ DEFAULT_INDEX = "https://git.gatit.es/api/packages/pyto/pypi/simple"
 
 class OutputPackage:
 
-    def __init__(self, path: str, version: str = f"{sys.version_info.major}.{sys.version_info.minor}"):
+    def __init__(self, path: str, output_target_name: str, version: str = f"{sys.version_info.major}.{sys.version_info.minor}"):
         self.path = path
         self.version = version
-        self.name = os.path.basename(path)
+        self.name = output_target_name
 
         short_version = version.split(".")
         if len(short_version) > 2:
@@ -59,7 +59,7 @@ class OutputPackage:
                 new_path = os.path.join(frameworks_path, os.path.basename(ext))
             else:
                 relative_path = os.path.relpath(ext, self.site_path)
-                new_name = relative_path.replace("/", "-").split(".cpython-")[0]+f"-cp{self.version.replace(".", "")}.dylib"
+                new_name = relative_path.replace("/", "-").split(".cpython-")[0].split(".abi3")[0]+f"-cp{self.version.replace(".", "")}.dylib"
                 new_path = os.path.join(frameworks_path, new_name)
             if os.path.exists(new_path):
                 os.remove(new_path)
@@ -68,10 +68,10 @@ class OutputPackage:
             make_framework(new_path, platform)
 
     def make_xcode_frameworks(self, include_scripts: bool):
-        make_xcode_frameworks(os.path.join(self.path, "Frameworks"), include_scripts)
+        make_xcode_frameworks(os.path.join(self.path, "Frameworks"), include_scripts, self.name)
 
 
-def setup_environment(platform: str, architecture: str, output_path: str) -> dict:
+def setup_environment(platform: str, architecture: str, output: OutputPackage) -> dict:
     environ = os.environ
 
     environ["PYTHON_PLATFORM"] = platform.replace("-", "_")
@@ -108,8 +108,8 @@ def setup_environment(platform: str, architecture: str, output_path: str) -> dic
 
     return environ
 
-def call_pip(args: list[str], platform: str, arch: str, output_path: str) -> int:
-    ret = subprocess.run([os.environ["PYTHON_SCRIPT_PATH"], "-m", "pip"] + args, env=setup_environment(platform, arch, output_path))
+def call_pip(args: list[str], platform: str, arch: str, output: OutputPackage) -> int:
+    ret = subprocess.run([os.environ["PYTHON_SCRIPT_PATH"], "-m", "pip"] + args, env=setup_environment(platform, arch, output))
     if ret.returncode != 0:
         print(f"Error running pip for platform '{platform}'", file=sys.stderr)
         sys.exit(ret.returncode)
