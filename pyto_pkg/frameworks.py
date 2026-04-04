@@ -161,11 +161,20 @@ def make_xcode_frameworks(frameworks_path: str, include_scripts: bool, target_na
         targets_declaration += f'                .target(name: "{name}"),\n'
         frameworks_declaration += f'        .binaryTarget(name: "{name}", path: "{os.path.basename(framework)}"),\n'
 
+    # Discover all Python version bundles
+    sources_path = os.path.join(output_path, "Sources", target_name)
+    bundles_declaration = ""
+    if os.path.exists(sources_path):
+        bundles = sorted([d for d in os.listdir(sources_path) if d.endswith(".bundle") and d.startswith(target_name + "-cp")])
+        for bundle in bundles:
+            bundles_declaration += f'                .copy("{bundle}"),\n'
+
     new_package_manifest_path = os.path.join(output_path, "Package.swift")
     with open(PACKAGE_MANIFEST_PATH, "r") as package_manifest:
         content = package_manifest.read()
         content = content.replace('                .target(name: "")', targets_declaration)
         content = content.replace('        .binaryTarget(name: "", path: "")', frameworks_declaration)
+        content = content.replace("// PYTHON_BUNDLES_PLACEHOLDER", bundles_declaration.rstrip('\n'))
         content = content.replace("PythonExtensions", os.path.basename(output_path))
         content = content.replace("TargetName", target_name)
         if not include_scripts:

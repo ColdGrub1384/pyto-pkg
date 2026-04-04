@@ -6,18 +6,18 @@ let package = Package(
     name: "PythonExtensions",
     products: [
         .library(
-            name: "PythonExtensions",
-            targets: ["PythonExtensions"]),
+            name: "TargetName",
+            targets: ["TargetName"]),
     ],
 
     targets: [
         .target(
-            name: "PythonExtensions",
+            name: "TargetName",
             dependencies: [
                 .target(name: "")
             ],
             resources: [
-                .copy("PythonExtensions-cp314.bundle"),
+                // PYTHON_BUNDLES_PLACEHOLDER
             ]),
 
         .binaryTarget(name: "", path: "")
