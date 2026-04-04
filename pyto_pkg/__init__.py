@@ -49,6 +49,7 @@ This does not provide a cross compilation environment and is only meant to be us
                 args.target = SUPPORTED_TARGETS.keys()
             install(
                 output=args.output,
+                output_target_name=args.name,
                 packages=args.packages,
                 requirement=args.requirement,
                 no_scripts=args.no_scripts,
