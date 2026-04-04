@@ -17,7 +17,7 @@ def make_framework(library_path: str, platform: str) -> None:
     os.makedirs(framework_path)
 
     if platform == "ios-macabi":
-        new_info_path = os.path.join(framework_path, "Versions", "A", "Info.plist")
+        new_info_path = os.path.join(framework_path, "Versions", "A", "Resources", "Info.plist")
         new_library_path = os.path.join(framework_path, "Versions", "A", f"{framework_name}")
         if not os.path.exists(os.path.dirname(new_info_path)):
             os.makedirs(os.path.dirname(new_info_path))
@@ -67,12 +67,12 @@ def make_framework(library_path: str, platform: str) -> None:
         os.chdir(os.path.join(framework_path, "Versions"))
         os.symlink("A", "Current")
         os.chdir(framework_path)
-        os.symlink("Versions/Current/Info.plist", "Info.plist")
+        os.symlink("Versions/Current/Resources", "Resources")
         os.symlink(os.path.join("Versions/Current", framework_name), framework_name)
         os.chdir(cwd)
 
 
-def make_xcode_frameworks(frameworks_path: str, include_scripts: bool):
+def make_xcode_frameworks(frameworks_path: str, include_scripts: bool, target_name: str):
     output_path = os.path.abspath(os.path.join(frameworks_path, ".."))
 
     frameworks = {}
@@ -82,8 +82,11 @@ def make_xcode_frameworks(frameworks_path: str, include_scripts: bool):
         platform_name = platform.split(".")[0]
         if platform_name not in frameworks:
             frameworks[platform_name] = []
-        for framework in os.listdir(os.path.join(frameworks_path, platform)):
-            frameworks[platform_name].append(os.path.join(frameworks_path, platform, framework))
+        try:
+            for framework in os.listdir(os.path.join(frameworks_path, platform)):
+                frameworks[platform_name].append(os.path.join(frameworks_path, platform, framework))
+        except NotADirectoryError:
+            continue
 
     grouped_by_arch = {}
     for platform, paths in frameworks.items():
@@ -164,13 +167,14 @@ def make_xcode_frameworks(frameworks_path: str, include_scripts: bool):
         content = content.replace('                .target(name: "")', targets_declaration)
         content = content.replace('        .binaryTarget(name: "", path: "")', frameworks_declaration)
         content = content.replace("PythonExtensions", os.path.basename(output_path))
+        content = content.replace("TargetName", target_name)
         if not include_scripts:
             content = content.replace(".copy", "// .copy")
 
         with open(new_package_manifest_path, "w+") as new_package_manifest:
             new_package_manifest.write(content)
 
-    with open(os.path.join(output_path, "Sources", os.path.basename(output_path), os.path.basename(output_path)+".swift"), "w+") as f:
+    with open(os.path.join(output_path, "Sources", target_name, os.path.basename(output_path)+".swift"), "w+") as f:
         f.write("// empty\n")
 
     shutil.rmtree(frameworks_path)
