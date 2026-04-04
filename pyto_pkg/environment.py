@@ -80,7 +80,6 @@ def setup_environment(platform: str, architecture: str, output: OutputPackage) -
     environ["_PYTHON_HOST_PLATFORM"] = platform+"-"+architecture
     environ["ARCHS"] = architecture
 
-    output = OutputPackage(output_path)
     environ["PYTHON_SITE_PATH"] = output.site_path
     environ["PYTHON_PROJ_PATH"] = output.bundle_path
     environ["PYTHON_BIN_PATH"] = output.bin_path

@@ -34,8 +34,6 @@ This does not provide a cross compilation environment and is only meant to be us
 
     clean_parser = subparsers.add_parser("clean", help="Uninstall all packages.")
 
-    parser.add_argument("--output", "-o", required=True, help="Path of the Swift Package directory.")
-
     args = parser.parse_args()
     if args.output is not None:
         args.output = os.path.abspath(args.output)
