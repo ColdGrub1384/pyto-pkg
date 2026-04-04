@@ -20,6 +20,11 @@ def install(output: str, output_target_name: str, packages: list[str] = [], requ
             package.package_binaries(target, arch)
     package.make_xcode_frameworks(not no_scripts)
 
+    for subdir, dirs, files in os.walk(package.bundle_path):
+        for file in files:
+            path = os.path.join(subdir, file)
+            if os.path.splitext(os.path.join(subdir, file))[-1] == ".pyc":
+                os.remove(path)
 
 def uninstall(output: str, packages: list[str]):
     print(f"Uninstalling packages: {packages}, output: {output}")
