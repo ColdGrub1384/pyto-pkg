@@ -56,7 +56,7 @@ def make_framework(library_path: str, platform: str) -> None:
     with open(INFO_PATH, "r") as info_file:
         info_content = info_file.read()
         info_content = info_content.replace("%NAME%", framework_name)
-        info_content = info_content.replace("%BUNDLE_ID%", f"com.pyto.{framework_name.replace("-", "").replace("-", "")}")
+        info_content = info_content.replace("%BUNDLE_ID%", f"com.pyto.{framework_name.replace("-", "").replace("_", "")}")
         info_content = info_content.replace("%PLATFORM%", info_platform)
         info_content = info_content.replace("%MINIMUM_OS_VERSION%", minimum_os_version)
         with open(new_info_path, "w") as new_info_file:
