@@ -17,7 +17,7 @@ let package = Package(
                 .target(name: "")
             ],
             resources: [
-                // PYTHON_BUNDLES_PLACEHOLDER
+// PYTHON_BUNDLES_PLACEHOLDER
             ]),
 
         .binaryTarget(name: "", path: "")
