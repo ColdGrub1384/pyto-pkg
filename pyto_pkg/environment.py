@@ -72,7 +72,7 @@ class OutputPackage:
 
 
 def setup_environment(platform: str, architecture: str, output: OutputPackage) -> dict:
-    environ = os.environ
+    environ = os.environ.copy()
 
     environ["PYTHON_PLATFORM"] = platform.replace("-", "_")
     environ["PYTHON_SCRIPT_PATH"] = os.environ.get("PYTHON_SCRIPT_PATH", "")
@@ -88,6 +88,14 @@ def setup_environment(platform: str, architecture: str, output: OutputPackage) -
     environ["PATH"] = os.environ["PATH"]+":"+output.bin_path
 
     environ["PYTHON_SYSTEM"] = "Pyto"
+    
+    # Ensure dependencies are available during build isolation
+    environ["PIP_TOOL_PATH"] = os.environ.get("PYTHON_SCRIPT_PATH", "")
+    
+    # Add pyto_pkg to PYTHONPATH for build backends
+    pyto_pkg_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    existing_pythonpath = os.environ.get("PYTHONPATH", "")
+    environ["PYTHONPATH"] = pyto_pkg_root + (":" + existing_pythonpath if existing_pythonpath else "")
 
     match platform:
         case "ios":

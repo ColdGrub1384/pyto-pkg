@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 """
 Python interpreter.
 
@@ -14,8 +16,6 @@ import sysconfig
 import platform
 from collections import namedtuple
 from code import interact
-import pip
-from pip._internal.locations import base
 
 def ios_ver():
     IOSVersion = namedtuple("IOS", ["system", "release", "model", "is_simulator"])
@@ -48,9 +48,14 @@ def main():
     bin_path = os.environ["PYTHON_BIN_PATH"]
     include_path = os.environ["PYTHON_INCLUDE_PATH"]
 
+    try:
+        from pip._internal.locations import base
+        base.user_site = site_path
+        base.site_packages = site_path
+    except ImportError:
+        pass
+
     site.USER_SITE = site_path
-    base.user_site = site_path
-    base.site_packages = site_path
     sys.prefix = proj_path
     sys.exec_prefix = proj_path
     sysconfig._PREFIX = sys.prefix

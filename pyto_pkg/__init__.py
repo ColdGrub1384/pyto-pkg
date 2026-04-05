@@ -6,7 +6,7 @@ import sysconfig
 import sys
 import os
 
-os.environ["PYTHON_SCRIPT_PATH"] = os.path.join(sysconfig.get_path("scripts", f"{os.name}_prefix"), "pyto-cross-python")
+os.environ["PYTHON_SCRIPT_PATH"] = os.path.join(os.path.dirname(__file__), "cross_python.py")
 os.putenv(f"PYTHON_SCRIPT_PATH", os.environ["PYTHON_SCRIPT_PATH"])
 
 def main():
