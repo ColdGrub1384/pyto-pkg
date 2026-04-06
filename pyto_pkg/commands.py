@@ -6,7 +6,7 @@ def install(output: str, output_target_name: str, packages: list[str] = [], requ
     package = OutputPackage(output, output_target_name)
     for target in targets:
         for arch in SUPPORTED_TARGETS[target]:
-            args = ["install", "--use-pep517", "--prefer-binary", "--force-reinstall", "--pre"] + packages
+            args = ["install", "--use-pep517", "--prefer-binary", "--force-reinstall", "--pre", "--no-cache-dir"] + packages
             if requirement is not None:
                 with open(requirement, "r") as f:
                     for pkg in f.readlines():
