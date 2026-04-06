@@ -28,6 +28,7 @@ This does not provide a cross compilation environment and is only meant to be us
     install_parser.add_argument("--no-scripts", required=False, action="store_true", help="Only install extensions so scripts can be downloaded later.")
     install_parser.add_argument("--no-deps", required=False, action="store_true", help="Skip dependencies.")
     install_parser.add_argument("--index-url", "-i", required=False, help="Primary PyPI index URL. Default value is the pyto-runtime registry and it falls back to the default PyPI index.")
+    install_parser.add_argument("--include", required=False, action="append", help="Path of existing Swift Package containing Python modules that this new package depends on so dependencies are not installed twice in the same app.")
 
     uninstall_parser = subparsers.add_parser("uninstall", help="Uninstall package(s).")
     uninstall_parser.add_argument("packages", nargs="*", help="Package(s) to uninstall.")
@@ -53,7 +54,8 @@ This does not provide a cross compilation environment and is only meant to be us
                 no_scripts=args.no_scripts,
                 no_deps=args.no_deps,
                 index_url=args.index_url or DEFAULT_INDEX,
-                targets=args.target
+                targets=args.target,
+                include=args.include or []
             )
         case "uninstall":
             if not args.packages:

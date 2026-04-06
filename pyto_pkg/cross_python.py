@@ -13,7 +13,7 @@ import runpy
 import platform
 import subprocess
 import sysconfig
-import platform
+import glob
 from collections import namedtuple
 from code import interact
 
@@ -81,6 +81,22 @@ def main():
         sys.argv.pop(1)
 
     sys.path.append(os.getcwd())
+
+    # Add site-packages from included Swift Packages to sys.path
+    if "PYTHON_ADDITIONAL_PATH" in os.environ:
+        additional_paths = os.environ["PYTHON_ADDITIONAL_PATH"].split(";")
+        python_version = f"{sys.version_info.major}.{sys.version_info.minor}"
+        short_version = python_version.replace(".", "")
+        
+        for include_path in additional_paths:
+            if not include_path:
+                continue
+            # Find the site-packages directory matching pattern: Sources/xxx/xxx-cpxxx.bundle/lib/pythonx.xx/site-packages
+            pattern = os.path.join(include_path, "Sources", "*", f"*-cp{short_version}.bundle", "lib", f"python{python_version}", "site-packages")
+            matching_dirs = glob.glob(pattern)
+            for site_packages_dir in matching_dirs:
+                if site_packages_dir not in sys.path:
+                    sys.path.insert(0, site_packages_dir)
 
     if len(sys.argv) == 1 and sys.stdin.isatty():
         return interact()

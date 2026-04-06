@@ -71,7 +71,7 @@ class OutputPackage:
         make_xcode_frameworks(os.path.join(self.path, "Frameworks"), include_scripts, self.name)
 
 
-def setup_environment(platform: str, architecture: str, output: OutputPackage) -> dict:
+def setup_environment(platform: str, architecture: str, output: OutputPackage, include: list[str] = []) -> dict:
     environ = os.environ.copy()
 
     environ["PYTHON_PLATFORM"] = platform.replace("-", "_")
@@ -84,6 +84,9 @@ def setup_environment(platform: str, architecture: str, output: OutputPackage) -
     environ["PYTHON_PROJ_PATH"] = output.bundle_path
     environ["PYTHON_BIN_PATH"] = output.bin_path
     environ["PYTHON_INCLUDE_PATH"] = output.include_path
+
+    if include:
+        environ["PYTHON_ADDITIONAL_PATH"] = ";".join(include)
 
     environ["PATH"] = os.environ["PATH"]+":"+output.bin_path
 
@@ -115,8 +118,8 @@ def setup_environment(platform: str, architecture: str, output: OutputPackage) -
 
     return environ
 
-def call_pip(args: list[str], platform: str, arch: str, output: OutputPackage) -> int:
-    ret = subprocess.run([os.environ["PYTHON_SCRIPT_PATH"], "-m", "pip"] + args, env=setup_environment(platform, arch, output))
+def call_pip(args: list[str], platform: str, arch: str, output: OutputPackage, include: list[str] = []) -> int:
+    ret = subprocess.run([os.environ["PYTHON_SCRIPT_PATH"], "-m", "pip"] + args, env=setup_environment(platform, arch, output, include))
     if ret.returncode != 0:
         print(f"Error running pip for platform '{platform}'", file=sys.stderr)
         sys.exit(ret.returncode)

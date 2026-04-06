@@ -2,7 +2,7 @@ from .environment import call_pip, SUPPORTED_TARGETS, DEFAULT_INDEX, OutputPacka
 import os
 
 
-def install(output: str, output_target_name: str, packages: list[str] = [], requirement: str = None, no_scripts: bool = False, no_deps: bool = False, index_url: str = DEFAULT_INDEX, targets: list[str] = []):
+def install(output: str, output_target_name: str, packages: list[str] = [], requirement: str = None, no_scripts: bool = False, no_deps: bool = False, index_url: str = DEFAULT_INDEX, targets: list[str] = [], include: list[str] = []):
     package = OutputPackage(output, output_target_name)
     for target in targets:
         for arch in SUPPORTED_TARGETS[target]:
@@ -16,7 +16,7 @@ def install(output: str, output_target_name: str, packages: list[str] = [], requ
                 args.append("--no-deps")
             args += ["--index-url", index_url]
             args += ["--extra-index-url", "https://pypi.org/simple"]
-            call_pip(args, target, arch, package)
+            call_pip(args, target, arch, package, include)
             package.package_binaries(target, arch)
     package.make_xcode_frameworks(not no_scripts)
 
