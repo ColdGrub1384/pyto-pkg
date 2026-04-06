@@ -19,6 +19,7 @@ This does not provide a cross compilation environment and is only meant to be us
 """)
     parser.add_argument("--output", "-o", required=True, help="Path of the Swift Package directory.")
     parser.add_argument("--name", "-n", required=False, help="Specify a name for the Swift Package target name different from the package name.")
+    parser.add_argument("--include", required=False, action="append", help="Path of existing Swift Package containing Python modules that this new package depends on so dependencies are not installed twice in the same app.")
     
     subparsers = parser.add_subparsers(dest="command", required=True)
     install_parser = subparsers.add_parser("install", help="Install package(s).")
@@ -28,7 +29,6 @@ This does not provide a cross compilation environment and is only meant to be us
     install_parser.add_argument("--no-scripts", required=False, action="store_true", help="Only install extensions so scripts can be downloaded later.")
     install_parser.add_argument("--no-deps", required=False, action="store_true", help="Skip dependencies.")
     install_parser.add_argument("--index-url", "-i", required=False, help="Primary PyPI index URL. Default value is the pyto-runtime registry and it falls back to the default PyPI index.")
-    install_parser.add_argument("--include", required=False, action="append", help="Path of existing Swift Package containing Python modules that this new package depends on so dependencies are not installed twice in the same app.")
 
     uninstall_parser = subparsers.add_parser("uninstall", help="Uninstall package(s).")
     uninstall_parser.add_argument("packages", nargs="*", help="Package(s) to uninstall.")
