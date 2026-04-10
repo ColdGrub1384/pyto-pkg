@@ -29,10 +29,24 @@ def parse_package_customization(package_spec: str, default_targets: list[str]) -
     
     if includes:
         # If includes are specified, only use those
-        result_targets = includes
+        for t in includes:
+            if "_" in t:
+                result_targets.append(t)
+            elif t in SUPPORTED_TARGETS:
+                for arch in SUPPORTED_TARGETS[t]:
+                    result_targets.append(f"{t}_{arch}")
+            else:
+                result_targets.append(t)
     else:
         # If only excludes are specified, use all except excluded ones
-        result_targets = [target for target in default_targets if target not in excludes]
+        for target in default_targets:
+            is_excluded = False
+            for ex in excludes:
+                if target == ex or target.startswith(ex + "_"):
+                    is_excluded = True
+                    break
+            if not is_excluded:
+                result_targets.append(target)
     
     return package_name, result_targets
 
@@ -60,47 +74,49 @@ def install(output: str, output_target_name: str, packages: list[str] = [], requ
     # Install each package for its specified targets
     platforms_memory = {}
     for pkg_spec, pkg_targets in all_package_specs:
-        for target in pkg_targets:
-            for arch in SUPPORTED_TARGETS[target]:
-                # 1. Read existing platforms.txt files into memory if not already there
-                if os.path.exists(package.site_path):
-                    for dist_info in glob.glob(os.path.join(package.site_path, "*.dist-info")):
-                        name = os.path.basename(dist_info)
+        for full_target in pkg_targets:
+            if "_" in full_target:
+                target, arch = full_target.split("_", 1)
+
+            # 1. Read existing platforms.txt files into memory if not already there
+            if os.path.exists(package.site_path):
+                for dist_info in glob.glob(os.path.join(package.site_path, "*.dist-info")):
+                    name = os.path.basename(dist_info)
+                    platforms_file = os.path.join(dist_info, "platforms.txt")
+                    if name not in platforms_memory:
+                        if os.path.exists(platforms_file):
+                            with open(platforms_file, "r") as f:
+                                platforms_memory[name] = set(f.read().splitlines())
+                        else:
+                            platforms_memory[name] = set()
+
+            args = ["install", "--use-pep517", "--prefer-binary", "--force-reinstall", "--pre", pkg_spec]
+            if no_deps:
+                args.append("--no-deps")
+            args += ["--index-url", index_url]
+            args += ["--extra-index-url", "https://pypi.org/simple"]
+            call_pip(args, target, arch, package, include)
+
+            # 2. Update platforms.txt in each dist-info
+            platform_name = f"{target}_{arch}"
+            if os.path.exists(package.site_path):
+                for dist_info in glob.glob(os.path.join(package.site_path, "*.dist-info")):
+                    name = os.path.basename(dist_info)
+                    if name not in platforms_memory:
                         platforms_file = os.path.join(dist_info, "platforms.txt")
-                        if name not in platforms_memory:
-                            if os.path.exists(platforms_file):
-                                with open(platforms_file, "r") as f:
-                                    platforms_memory[name] = set(f.read().splitlines())
-                            else:
-                                platforms_memory[name] = set()
+                        if os.path.exists(platforms_file):
+                            with open(platforms_file, "r") as f:
+                                platforms_memory[name] = set(f.read().splitlines())
+                        else:
+                            platforms_memory[name] = set()
+                    
+                    platforms_memory[name].add(platform_name)
+                    
+                    platforms_file = os.path.join(dist_info, "platforms.txt")
+                    with open(platforms_file, "w") as f:
+                        f.write("\n".join(sorted(list(platforms_memory[name]))) + "\n")
 
-                args = ["install", "--use-pep517", "--prefer-binary", "--force-reinstall", "--pre", pkg_spec]
-                if no_deps:
-                    args.append("--no-deps")
-                args += ["--index-url", index_url]
-                args += ["--extra-index-url", "https://pypi.org/simple"]
-                call_pip(args, target, arch, package, include)
-
-                # 2. Update platforms.txt in each dist-info
-                platform_name = f"{target}_{arch}"
-                if os.path.exists(package.site_path):
-                    for dist_info in glob.glob(os.path.join(package.site_path, "*.dist-info")):
-                        name = os.path.basename(dist_info)
-                        if name not in platforms_memory:
-                            platforms_file = os.path.join(dist_info, "platforms.txt")
-                            if os.path.exists(platforms_file):
-                                with open(platforms_file, "r") as f:
-                                    platforms_memory[name] = set(f.read().splitlines())
-                            else:
-                                platforms_memory[name] = set()
-                        
-                        platforms_memory[name].add(platform_name)
-                        
-                        platforms_file = os.path.join(dist_info, "platforms.txt")
-                        with open(platforms_file, "w") as f:
-                            f.write("\n".join(sorted(list(platforms_memory[name]))) + "\n")
-
-                package.package_binaries(target, arch)
+            package.package_binaries(target, arch)
     
     package.make_xcode_frameworks(not no_scripts)
 

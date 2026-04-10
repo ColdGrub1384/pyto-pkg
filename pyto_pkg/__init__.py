@@ -25,7 +25,13 @@ This does not provide a cross compilation environment and is only meant to be us
     install_parser = subparsers.add_parser("install", help="Install package(s).")
     install_parser.add_argument("packages", nargs="*", help="Package(s) to install.")
     install_parser.add_argument("--requirement", "-r", help="Read packages from a requirements file.")
-    install_parser.add_argument("--target", "-t", required=False, help="Platforms to fetch wheels for. If none is supplied, will try to install for all supported targets.", action="append", choices=SUPPORTED_TARGETS.keys())
+    targets_choices = []
+    for platform, archs in SUPPORTED_TARGETS.items():
+        targets_choices.append(platform)
+        for arch in archs:
+            targets_choices.append(f"{platform}_{arch}")
+
+    install_parser.add_argument("--target", "-t", required=False, help="Platforms to fetch wheels for. If none is supplied, will try to install for all supported targets.", action="append", choices=targets_choices)
     install_parser.add_argument("--no-scripts", required=False, action="store_true", help="Only install extensions so scripts can be downloaded later.")
     install_parser.add_argument("--no-deps", required=False, action="store_true", help="Skip dependencies.")
     install_parser.add_argument("--index-url", "-i", required=False, help="Primary PyPI index URL. Default value is the pyto-runtime registry and it falls back to the default PyPI index.")
@@ -46,6 +52,15 @@ This does not provide a cross compilation environment and is only meant to be us
                 parser.error("At least one package or a requirements file must be specified.")
             if args.target is None:
                 args.target = SUPPORTED_TARGETS.keys()
+            
+            expanded_targets = []
+            for t in args.target:
+                if "_" in t:
+                    expanded_targets.append(t)
+                elif t in SUPPORTED_TARGETS:
+                    for arch in SUPPORTED_TARGETS[t]:
+                        expanded_targets.append(f"{t}_{arch}")
+            
             install(
                 output=args.output,
                 output_target_name=args.name,
@@ -54,7 +69,7 @@ This does not provide a cross compilation environment and is only meant to be us
                 no_scripts=args.no_scripts,
                 no_deps=args.no_deps,
                 index_url=args.index_url or DEFAULT_INDEX,
-                targets=args.target,
+                targets=expanded_targets,
                 include=args.include or []
             )
         case "uninstall":
