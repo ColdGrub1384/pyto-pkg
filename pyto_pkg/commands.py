@@ -74,7 +74,7 @@ def install(output: str, output_target_name: str, packages: list[str] = [], requ
                             else:
                                 platforms_memory[name] = set()
 
-                args = ["install", "--use-pep517", "--prefer-binary", "--force-reinstall", "--pre", "--no-cache-dir", pkg_spec]
+                args = ["install", "--use-pep517", "--prefer-binary", "--force-reinstall", "--pre", pkg_spec]
                 if no_deps:
                     args.append("--no-deps")
                 args += ["--index-url", index_url]
