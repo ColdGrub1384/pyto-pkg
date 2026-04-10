@@ -1,6 +1,6 @@
 # pyto-pkg
 
-Python command line utility that installs wheels into Swift packages. Scripts are shared accross platforms (even when installed from wheels), but extensions are installed in os specific Apple Frameworks only if a supported wheel is found.
+Python command line utility that installs wheels into Swift packages. Scripts are shared accross platforms (even when installed from wheels), but extensions are installed in os specific Apple Frameworks only if a supported wheel is found. The installed platforms are written in `*.dist-info/platforms.txt`.
 
 This does not provide a cross compilation environment and is only meant to be used to install wheels and pure Python packages.
 
