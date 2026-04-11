@@ -55,6 +55,8 @@ def main():
     except ImportError:
         pass
 
+    system_site = site.getsitepackages()
+
     site.USER_SITE = site_path
     sys.prefix = proj_path
     sys.exec_prefix = proj_path
@@ -80,7 +82,9 @@ def main():
     if len(sys.argv) > 1 and sys.argv[1] == "-u":
         sys.argv.pop(1)
 
-    sys.path.append(os.getcwd())
+    for path in system_site:
+        if path in sys.path:
+            sys.path.remove(path)
 
     # Add site-packages from included Swift Packages to sys.path
     if "PYTHON_ADDITIONAL_PATH" in os.environ:
