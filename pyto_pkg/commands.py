@@ -96,12 +96,12 @@ def install(output: str, output_target_name: str, packages: list[str] = [], requ
 
         os.makedirs(package.site_path, exist_ok=True)
 
-        for pkg_spec in target_packages:
-            args = ["install", "--use-pep517", "--prefer-binary", "--pre", pkg_spec]
+        if target_packages:
+            args = ["install", "--use-pep517", "--prefer-binary", "--pre"]
             if no_deps:
                 args.append("--no-deps")
-            args += ["--index-url", index_url]
-            args += ["--extra-index-url", "https://pypi.org/simple"]
+            args += ["--index-url", index_url, "--extra-index-url", "https://pypi.org/simple"]
+            args += target_packages
             call_pip(args, target, arch, package, include)
 
         # Update platforms.txt in the newly installed packages
