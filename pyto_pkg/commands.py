@@ -1,6 +1,7 @@
 from .environment import call_pip, SUPPORTED_TARGETS, DEFAULT_INDEX, OutputPackage
 import os
 import glob
+import shutil
 
 
 def parse_package_customization(package_spec: str, default_targets: list[str]) -> tuple[str, list[str]]:
@@ -53,15 +54,15 @@ def parse_package_customization(package_spec: str, default_targets: list[str]) -
 
 def install(output: str, output_target_name: str, packages: list[str] = [], requirement: str = None, no_scripts: bool = False, no_deps: bool = False, index_url: str = DEFAULT_INDEX, targets: list[str] = [], include: list[str] = []):
     package = OutputPackage(output, output_target_name)
-    
+
     # Build list of all packages with their customizations
     all_package_specs = []
-    
+
     # Parse command-line packages
     for pkg_spec in packages:
         pkg_name, pkg_targets = parse_package_customization(pkg_spec, list(targets))
         all_package_specs.append((pkg_name, pkg_targets))
-    
+
     # Parse requirement file packages
     if requirement is not None:
         with open(requirement, "r") as f:
@@ -70,54 +71,79 @@ def install(output: str, output_target_name: str, packages: list[str] = [], requ
                 if line and not line.startswith("#"):
                     pkg_name, pkg_targets = parse_package_customization(line, list(targets))
                     all_package_specs.append((pkg_name, pkg_targets))
-    
-    # Install each package for its specified targets
-    platforms_memory = {}
-    for pkg_spec, pkg_targets in all_package_specs:
+
+    # Group packages by target
+    target_groups = {}
+    for pkg_name, pkg_targets in all_package_specs:
         for full_target in pkg_targets:
-            if "_" in full_target:
-                target, arch = full_target.split("_", 1)
+            if full_target not in target_groups:
+                target_groups[full_target] = []
+            target_groups[full_target].append(pkg_name)
 
-            # 1. Read existing platforms.txt files into memory if not already there
-            if os.path.exists(package.site_path):
-                for dist_info in glob.glob(os.path.join(package.site_path, "*.dist-info")):
-                    name = os.path.basename(dist_info)
-                    platforms_file = os.path.join(dist_info, "platforms.txt")
-                    if name not in platforms_memory:
-                        if os.path.exists(platforms_file):
-                            with open(platforms_file, "r") as f:
-                                platforms_memory[name] = set(f.read().splitlines())
-                        else:
-                            platforms_memory[name] = set()
+    # Install for each target
+    for full_target, target_packages in target_groups.items():
+        if "_" in full_target:
+            target, arch = full_target.split("_", 1)
+        else:
+            continue
 
-            args = ["install", "--use-pep517", "--prefer-binary", "--force-reinstall", "--pre", pkg_spec]
+        # Move current site-packages to a temporary location
+        backup_path = package.site_path + ".old"
+        if os.path.exists(package.site_path):
+            if os.path.exists(backup_path):
+                shutil.rmtree(backup_path)
+            shutil.move(package.site_path, backup_path)
+
+        os.makedirs(package.site_path, exist_ok=True)
+
+        for pkg_spec in target_packages:
+            args = ["install", "--use-pep517", "--prefer-binary", "--pre", pkg_spec]
             if no_deps:
                 args.append("--no-deps")
             args += ["--index-url", index_url]
             args += ["--extra-index-url", "https://pypi.org/simple"]
             call_pip(args, target, arch, package, include)
 
-            # 2. Update platforms.txt in each dist-info
-            platform_name = f"{target}_{arch}"
-            if os.path.exists(package.site_path):
-                for dist_info in glob.glob(os.path.join(package.site_path, "*.dist-info")):
-                    name = os.path.basename(dist_info)
-                    if name not in platforms_memory:
-                        platforms_file = os.path.join(dist_info, "platforms.txt")
-                        if os.path.exists(platforms_file):
-                            with open(platforms_file, "r") as f:
-                                platforms_memory[name] = set(f.read().splitlines())
-                        else:
-                            platforms_memory[name] = set()
-                    
-                    platforms_memory[name].add(platform_name)
-                    
-                    platforms_file = os.path.join(dist_info, "platforms.txt")
-                    with open(platforms_file, "w") as f:
-                        f.write("\n".join(sorted(list(platforms_memory[name]))) + "\n")
+        # Update platforms.txt in the newly installed packages
+        platform_name = f"{target}_{arch}"
+        for dist_info in glob.glob(os.path.join(package.site_path, "*.dist-info")):
+            platforms_file = os.path.join(dist_info, "platforms.txt")
+            platforms = set()
+            if os.path.exists(platforms_file):
+                with open(platforms_file, "r") as f:
+                    platforms = set(f.read().splitlines())
 
-            package.package_binaries(target, arch)
-    
+            platforms.add(platform_name)
+            with open(platforms_file, "w") as f:
+                f.write("\n".join(sorted(list(platforms))) + "\n")
+
+        # Merge back the backup
+        if os.path.exists(backup_path):
+            for item in os.listdir(backup_path):
+                src = os.path.join(backup_path, item)
+                dst = os.path.join(package.site_path, item)
+
+                if item.endswith(".dist-info") and os.path.exists(dst):
+                    # Merge platforms.txt
+                    old_platforms_file = os.path.join(src, "platforms.txt")
+                    new_platforms_file = os.path.join(dst, "platforms.txt")
+
+                    if os.path.exists(old_platforms_file):
+                        with open(old_platforms_file, "r") as f:
+                            old_platforms = set(f.read().splitlines())
+                        with open(new_platforms_file, "r") as f:
+                            new_platforms = set(f.read().splitlines())
+
+                        merged_platforms = old_platforms.union(new_platforms)
+                        with open(new_platforms_file, "w") as f:
+                            f.write("\n".join(sorted(list(merged_platforms))) + "\n")
+                elif not os.path.exists(dst):
+                    shutil.move(src, dst)
+
+            shutil.rmtree(backup_path)
+
+        package.package_binaries(target, arch)
+
     package.make_xcode_frameworks(not no_scripts)
 
     for subdir, dirs, files in os.walk(package.bundle_path):
