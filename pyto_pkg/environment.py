@@ -85,8 +85,22 @@ def setup_environment(platform: str, architecture: str, output: OutputPackage, i
     environ["PYTHON_BIN_PATH"] = output.bin_path
     environ["PYTHON_INCLUDE_PATH"] = output.include_path
 
+    # Resolve PYTHON_ADDITIONAL_PATH to actual site-packages directories
+    resolved_additional_paths = []
     if include:
-        environ["PYTHON_ADDITIONAL_PATH"] = ";".join(include)
+        python_version = f"{sys.version_info.major}.{sys.version_info.minor}"
+        short_version = python_version.replace(".", "")
+
+        for include_path in include:
+            if not include_path:
+                continue
+            # Find the site-packages directory matching pattern: Sources/xxx/xxx-cpxxx.bundle/lib/pythonx.xx/site-packages
+            pattern = os.path.join(include_path, "Sources", "*", f"*-cp{short_version}.bundle", "lib", f"python{python_version}", "site-packages")
+            matching_dirs = glob.glob(pattern)
+            resolved_additional_paths.extend(matching_dirs)
+
+        if resolved_additional_paths:
+            environ["PYTHON_ADDITIONAL_PATH"] = ";".join(resolved_additional_paths)
 
     environ["PATH"] = os.environ["PATH"]+":"+output.bin_path
 
@@ -97,8 +111,17 @@ def setup_environment(platform: str, architecture: str, output: OutputPackage, i
     
     # Add pyto_pkg to PYTHONPATH for build backends
     pyto_pkg_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    pythonpath_parts = [pyto_pkg_root]
+    
+    # Add resolved PYTHON_ADDITIONAL_PATH to PYTHONPATH
+    if resolved_additional_paths:
+        pythonpath_parts.extend(resolved_additional_paths)
+    
     existing_pythonpath = os.environ.get("PYTHONPATH", "")
-    environ["PYTHONPATH"] = pyto_pkg_root + (":" + existing_pythonpath if existing_pythonpath else "")
+    if existing_pythonpath:
+        pythonpath_parts.append(existing_pythonpath)
+    
+    environ["PYTHONPATH"] = ":".join(pythonpath_parts)
 
     match platform:
         case "ios":
@@ -119,7 +142,7 @@ def setup_environment(platform: str, architecture: str, output: OutputPackage, i
     return environ
 
 def call_pip(args: list[str], platform: str, arch: str, output: OutputPackage, include: list[str] = []) -> int:
-    ret = subprocess.run([os.environ["PYTHON_SCRIPT_PATH"], "-m", "pip"] + args, env=setup_environment(platform, arch, output, include))
+    ret = subprocess.run([os.environ["PYTHON_SCRIPT_PATH"], "-m", "pip", "--python", os.environ["PYTHON_SCRIPT_PATH"]] + args, env=setup_environment(platform, arch, output, include))
     if ret.returncode != 0:
         print(f"Error running pip for platform '{platform}'", file=sys.stderr)
         sys.exit(ret.returncode)
