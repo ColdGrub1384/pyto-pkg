@@ -70,7 +70,7 @@ This does not provide a cross compilation environment and is only meant to be us
                 no_deps=args.no_deps,
                 index_url=args.index_url or DEFAULT_INDEX,
                 targets=expanded_targets,
-                include=args.include or []
+                include=map(os.path.abspath, args.include) if args.include else []
             )
         case "uninstall":
             if not args.packages:
