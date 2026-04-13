@@ -1,6 +1,7 @@
 import os
 import shutil
 import subprocess
+import re
 from collections import defaultdict
 
 
@@ -26,6 +27,15 @@ def make_framework(library_path: str, platform: str) -> None:
         new_library_path = os.path.join(framework_path, f"{framework_name}")
     
     subprocess.run(["install_name_tool", "-id", f"@rpath/{framework_name}.framework/{framework_name}", library_path])
+    
+    # Change dependencies
+    otool_output = subprocess.check_output(["otool", "-l", library_path], text=True)
+    dependencies = re.findall(r"name (@rpath/.*?\.dylib) \(offset \d+\)", otool_output)
+    for dep in dependencies:
+        dep_name = os.path.splitext(os.path.basename(dep))[0]
+        new_dep = f"@rpath/{dep_name}.framework/{dep_name}"
+        subprocess.run(["install_name_tool", "-change", dep, new_dep, library_path])
+
     shutil.move(library_path, new_library_path)
 
     match platform:
