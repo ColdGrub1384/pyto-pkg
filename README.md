@@ -11,7 +11,7 @@ Supported platforms are: `ios`, `ios-simulator`, `ios-macabi`, `tvos`, `tvos-sim
 ## Usage
 
 ```
-$ pip install git+https://git.gatit.es/pyto/pyto-pkg.git@1.0
+$ pip install pyto-pkg
 $ pyto-pkg --output SwiftPackagePath install numpy
 ```
 
