@@ -94,6 +94,7 @@ def setup_environment(platform: str, architecture: str, output: OutputPackage, i
         for include_path in include:
             if not include_path:
                 continue
+            resolved_additional_paths.append(include_path)
             # Find the site-packages directory matching pattern: Sources/xxx/xxx-cpxxx.bundle/lib/pythonx.xx/site-packages
             pattern = os.path.join(include_path, "Sources", "*", f"*-cp{short_version}.bundle", "lib", f"python{python_version}", "site-packages")
             matching_dirs = glob.glob(pattern)

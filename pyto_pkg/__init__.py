@@ -19,7 +19,7 @@ This does not provide a cross compilation environment and is only meant to be us
 """)
     parser.add_argument("--output", "-o", required=True, help="Path of the Swift Package directory.")
     parser.add_argument("--name", "-n", required=False, help="Specify a name for the Swift Package target name different from the package name.")
-    parser.add_argument("--include", required=False, action="append", help="Path of existing Swift Package containing Python modules that this new package depends on so dependencies are not installed twice in the same app.")
+    parser.add_argument("--include", required=False, action="append", help="Path of existing Swift Package or any directory containing Python modules that this new package depends on so dependencies are not installed twice in the same app.")
     
     subparsers = parser.add_subparsers(dest="command", required=True)
     install_parser = subparsers.add_parser("install", help="Install package(s).")
