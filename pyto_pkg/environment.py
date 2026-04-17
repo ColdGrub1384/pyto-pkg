@@ -67,8 +67,8 @@ class OutputPackage:
         
             make_framework(new_path, platform)
 
-    def make_xcode_frameworks(self, include_scripts: bool):
-        make_xcode_frameworks(os.path.join(self.path, "Frameworks"), include_scripts, self.name)
+    def make_xcode_frameworks(self, include_scripts: bool, manifest_path: str = None):
+        make_xcode_frameworks(os.path.join(self.path, "Frameworks"), include_scripts, self.name, manifest_path)
 
 
 def setup_environment(platform: str, architecture: str, output: OutputPackage, include: list[str] = []) -> dict:

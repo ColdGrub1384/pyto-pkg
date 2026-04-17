@@ -52,7 +52,7 @@ def parse_package_customization(package_spec: str, default_targets: list[str]) -
     return package_name, result_targets
 
 
-def install(output: str, output_target_name: str, packages: list[str] = [], requirement: str = None, no_scripts: bool = False, no_deps: bool = False, index_url: str = DEFAULT_INDEX, targets: list[str] = [], include: list[str] = []):
+def install(output: str, output_target_name: str, packages: list[str] = [], requirement: str = None, no_scripts: bool = False, no_deps: bool = False, index_url: str = DEFAULT_INDEX, targets: list[str] = [], include: list[str] = [], manifest: str = None):
     package = OutputPackage(output, output_target_name)
 
     # Build list of all packages with their customizations
@@ -144,7 +144,7 @@ def install(output: str, output_target_name: str, packages: list[str] = [], requ
 
         package.package_binaries(target, arch)
 
-    package.make_xcode_frameworks(not no_scripts)
+    package.make_xcode_frameworks(not no_scripts, manifest)
 
     for subdir, dirs, files in os.walk(package.bundle_path):
         for file in files:

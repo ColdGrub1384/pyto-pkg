@@ -25,3 +25,35 @@ torch==2.8.0a0+gitde3aca3,ios_arm64,ios-macabi_arm64,ios-macabi_x86_64
 ```
 
 Pass `--help` for more options. By default, wheels will be pulled from `https://git.gatit.es/api/packages/pyto/pypi/simple` but you can change it with `--index-url`. Wheels are preferred over tar balls and pip will fallback to the default index repository if no wheels or packages are found in the specified repo index. You can also skip scripts with `--no-scripts` so you can `pip install` the wheels at runtime while keeping the extensions. However you need to be sure that the version of the package installed at runtime matches the version of the extensions stored in the app bundle.
+
+## Adding dependencies
+
+You can pass a custom Package.swift manifest template path with the `--manifest` option so you can add your own dependencies. This is what your template should include:
+
+```swift
+// swift-tools-version: 5.9
+
+import PackageDescription
+
+let package = Package(
+    name: "%PACKAGE_NAME%",
+    products: [
+        .library(
+            name: "%TARGET_NAME%",
+            targets: ["%TARGET_NAME%"]),
+    ],
+
+    targets: [
+        .target(
+            name: "%TARGET_NAME%",
+            dependencies: [
+                %FRAMEWORK_DEPENDENCIES%
+            ],
+            resources: [
+%RESOURCES%
+            ]),
+
+        %FRAMEWORKS%
+    ]
+)
+```

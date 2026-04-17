@@ -82,7 +82,7 @@ def make_framework(library_path: str, platform: str) -> None:
         os.chdir(cwd)
 
 
-def make_xcode_frameworks(frameworks_path: str, include_scripts: bool, target_name: str):
+def make_xcode_frameworks(frameworks_path: str, include_scripts: bool, target_name: str, manifest_path: str = None):
     output_path = os.path.abspath(os.path.join(frameworks_path, ".."))
 
     frameworks = {}
@@ -180,13 +180,14 @@ def make_xcode_frameworks(frameworks_path: str, include_scripts: bool, target_na
             bundles_declaration += f'                .copy("{bundle}"),\n'
 
     new_package_manifest_path = os.path.join(output_path, "Package.swift")
-    with open(PACKAGE_MANIFEST_PATH, "r") as package_manifest:
+    effective_manifest_path = manifest_path if manifest_path else PACKAGE_MANIFEST_PATH
+    with open(effective_manifest_path, "r") as package_manifest:
         content = package_manifest.read()
-        content = content.replace('                .target(name: "")', targets_declaration)
-        content = content.replace('        .binaryTarget(name: "", path: "")', frameworks_declaration)
-        content = content.replace("// PYTHON_BUNDLES_PLACEHOLDER", bundles_declaration.rstrip('\n'))
-        content = content.replace("PythonExtensions", os.path.basename(output_path))
-        content = content.replace("TargetName", target_name)
+        content = content.replace('%FRAMEWORK_DEPENDENCIES%', targets_declaration)
+        content = content.replace('%FRAMEWORKS%', frameworks_declaration)
+        content = content.replace("%RESOURCES%", bundles_declaration.rstrip('\n'))
+        content = content.replace("%PACKAGE_NAME%", os.path.basename(output_path))
+        content = content.replace("%TARGET_NAME%", target_name)
         if not include_scripts:
             content = content.replace(".copy", "// .copy")
 

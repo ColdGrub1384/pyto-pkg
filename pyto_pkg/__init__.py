@@ -19,6 +19,7 @@ This does not provide a cross compilation environment and is only meant to be us
 """)
     parser.add_argument("--output", "-o", required=True, help="Path of the Swift Package directory.")
     parser.add_argument("--name", "-n", required=False, help="Specify a name for the Swift Package target name different from the package name.")
+    parser.add_argument("--manifest", "-m", required=False, help="Path to a custom Package.swift template to use instead of the built-in one.")
     parser.add_argument("--include", required=False, action="append", help="Path of existing Swift Package or any directory containing Python modules that this new package depends on so dependencies are not installed twice in the same app.")
     
     subparsers = parser.add_subparsers(dest="command", required=True)
@@ -46,6 +47,8 @@ This does not provide a cross compilation environment and is only meant to be us
         args.output = os.path.abspath(args.output)
     if args.name is None:
         args.name = os.path.basename(args.output)
+    if args.manifest is not None:
+        args.manifest = os.path.abspath(args.manifest)
     match args.command:
         case "install":
             if not args.packages and not args.requirement:
@@ -70,7 +73,8 @@ This does not provide a cross compilation environment and is only meant to be us
                 no_deps=args.no_deps,
                 index_url=args.index_url or DEFAULT_INDEX,
                 targets=expanded_targets,
-                include=list(map(os.path.abspath, args.include)) if args.include else []
+                include=list(map(os.path.abspath, args.include)) if args.include else [],
+                manifest=args.manifest
             )
         case "uninstall":
             if not args.packages:

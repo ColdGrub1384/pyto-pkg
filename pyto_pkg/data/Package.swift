@@ -3,23 +3,23 @@
 import PackageDescription
 
 let package = Package(
-    name: "PythonExtensions",
+    name: "%PACKAGE_NAME%",
     products: [
         .library(
-            name: "TargetName",
-            targets: ["TargetName"]),
+            name: "%TARGET_NAME%",
+            targets: ["%TARGET_NAME%"]),
     ],
 
     targets: [
         .target(
-            name: "TargetName",
+            name: "%TARGET_NAME%",
             dependencies: [
-                .target(name: "")
+                %FRAMEWORK_DEPENDENCIES%
             ],
             resources: [
-// PYTHON_BUNDLES_PLACEHOLDER
+%RESOURCES%
             ]),
 
-        .binaryTarget(name: "", path: "")
+        %FRAMEWORKS%
     ]
 )
