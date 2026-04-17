@@ -14,12 +14,12 @@ let package = Package(
         .target(
             name: "%TARGET_NAME%",
             dependencies: [
-                %FRAMEWORK_DEPENDENCIES%
+%FRAMEWORK_DEPENDENCIES%
             ],
             resources: [
 %RESOURCES%
             ]),
 
-        %FRAMEWORKS%
+%FRAMEWORKS%
     ]
 )

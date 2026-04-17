@@ -166,10 +166,16 @@ def make_xcode_frameworks(frameworks_path: str, include_scripts: bool, target_na
 
     frameworks_declaration = ""
     targets_declaration = ""
+    i = 0
     for framework in output_xcode_frameworks:
+        if i < len(output_xcode_frameworks) - 1:
+            comma = ","
+        else:
+            comma = ""
         name = os.path.basename(os.path.splitext(framework)[0])
-        targets_declaration += f'                .target(name: "{name}"),\n'
-        frameworks_declaration += f'        .binaryTarget(name: "{name}", path: "{os.path.basename(framework)}"),\n'
+        targets_declaration += f'                .target(name: "{name}"){comma}\n'
+        frameworks_declaration += f'        .binaryTarget(name: "{name}", path: "{os.path.basename(framework)}"){comma}\n'
+        i += 1
 
     # Discover all Python version bundles
     sources_path = os.path.join(output_path, "Sources", target_name)
