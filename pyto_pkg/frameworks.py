@@ -37,6 +37,7 @@ def make_framework(library_path: str, platform: str) -> None:
         subprocess.run(["install_name_tool", "-change", dep, new_dep, library_path])
 
     shutil.move(library_path, new_library_path)
+    subprocess.run(["codesign", "--remove-signature", new_library_path])
 
     match platform:
         case "ios":
