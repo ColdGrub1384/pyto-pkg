@@ -36,6 +36,23 @@ def platform_system():
 def sysconfig_get_platform():
     return os.environ["_PYTHON_HOST_PLATFORM"]
 
+## Pip patch ##
+
+try:
+    import pip._vendor.distlib.scripts as scripts
+except ImportError:
+    scripts = None
+
+def patched_get_shebang(self, encoding, post_interp="", options=None):
+    major = sys.version_info.major
+    minor = sys.version_info.minor
+
+    shebang = f'#!/usr/bin/env -S /Library/Pyto/PytoRuntime.bundle/Contents/MacOS/pyto -v {major}.{minor} python\n'
+    return shebang.encode(encoding)
+
+if scripts is not None:
+    scripts.ScriptMaker._get_shebang = patched_get_shebang
+
 ## Interpreter  ##
 
 _usage = "usage: python [-c cmd | -m mod | file | -] [arg]"
