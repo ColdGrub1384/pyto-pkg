@@ -2,6 +2,7 @@ from .environment import call_pip, SUPPORTED_TARGETS, DEFAULT_INDEX, OutputPacka
 import os
 import glob
 import shutil
+import stat
 
 
 def parse_package_customization(package_spec: str, default_targets: list[str]) -> tuple[str, list[str]]:
@@ -145,6 +146,13 @@ def install(output: str, output_target_name: str, packages: list[str] = [], requ
         package.package_binaries(target, arch)
 
     package.make_xcode_frameworks(not no_scripts, manifest)
+
+    # Remove executable permissions for App Store validation
+    for script in os.listdir(package.bin_path):
+        script_path = os.path.join(package.bin_path, script)
+        mode = os.stat(script_path).st_mode
+        mode &= ~(stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
+        os.chmod(script_path, mode)
 
     for subdir, dirs, files in os.walk(package.bundle_path):
         for file in files:
