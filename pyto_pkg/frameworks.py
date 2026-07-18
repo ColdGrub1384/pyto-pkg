@@ -95,8 +95,9 @@ def make_xcode_frameworks(frameworks_path: str, include_scripts: bool, target_na
             frameworks[platform_name] = []
         try:
             for framework in os.listdir(os.path.join(frameworks_path, platform)):
-                if os.path.isdir(framework) and os.path.splitext(framework)[-1].lower() == "framework":
-                    frameworks[platform_name].append(os.path.join(frameworks_path, platform, framework))
+                framework_path = os.path.join(frameworks_path, platform, framework)
+                if os.path.isdir(framework_path) and os.path.splitext(framework_path)[-1].lower() == ".framework":
+                    frameworks[platform_name].append(framework_path)
         except NotADirectoryError:
             continue
 
@@ -144,7 +145,7 @@ def make_xcode_frameworks(frameworks_path: str, include_scripts: bool, target_na
                 platform_merged_frameworks.append(output_framework)
 
         merged_frameworks[platform] = platform_merged_frameworks
-    
+ 
     registered_frameworks = defaultdict(list)
     for platform, frameworks in merged_frameworks.items():
         for framework in frameworks:
