@@ -10,7 +10,7 @@ from .frameworks import make_framework, make_xcode_frameworks
 SUPPORTED_TARGETS = {
     "ios": ("arm64",), "ios-simulator": ("arm64", "x86_64"), "ios-macabi": ("arm64", "x86_64"),
     "tvos": ("arm64",), "tvos-simulator": ("arm64", "x86_64"),
-    "watchos": ("arm64", "arm64_32", "armv7k"), "watchos-simulator": ("arm64", "x86_64")
+    "watchos": ("arm64", "arm64_32"), "watchos-simulator": ("arm64", "x86_64")
 }
 
 DEFAULT_INDEX = "https://git.gatit.es/api/packages/pyto/pypi/simple"
